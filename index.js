@@ -29,9 +29,27 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors());
+// Configuración CORS para producción
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*', // En producción, especifica la URL del frontend
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use('/qr', express.static(path.join(__dirname, 'public/qr')));
 app.use('/img', express.static(path.join(__dirname, 'public/img')));
+
+// Health check endpoint para Render
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'Backend Interpolis Enterprise funcionando correctamente',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
 
 app.use("/", ciudadano)
 app.use("/", usuarios)
@@ -41,7 +59,10 @@ app.use("/", evidenciasRoutes);
 
 const puerto = process.env.PORT || 4100;
 
-
-app.listen(puerto, () => {
-  console.log(`api ejecutandose en el puerto ${puerto}`);
+app.listen(puerto, '0.0.0.0', () => {
+  console.log(`=== SERVIDOR INICIADO ===`);
+  console.log(`Puerto: ${puerto}`);
+  console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log(`========================`);
 });
